@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+
+{% block title %}Contact List{% endblock %}
+
+
+{% block content %}
+    <div class="card">
+        <div class="card-header card-header-secondary">
+            <h4 class="card-title">Contacts</h4>
+            <a href="{% url 'phonebook:create_contact' %}">Add more contacts</a>
+        </div>
+        <ul>
+            {% for contact in contacts %}
+                <li class="card-body">{{ contact.name }} | 
+                    <a href="{% url 'phonebook:update_contact' contact.id %}">Edit</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}
