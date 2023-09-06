@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import redirect
 from django.contrib import messages
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView, UpdateView
@@ -33,9 +33,9 @@ class ContactInline():
         """
         Hook for custom formset saving. Useful if you have multiple formsets
         """
-        numbers = formset.save(commit=False)  # self.save_formset(formset, contact)
+        numbers = formset.save(commit=False)
 
-        # add this 2 lines, if you have can_delete=True parameter 
+        # if you have can_delete=True parameter 
         # set in inlineformset_factory func
         for obj in formset.deleted_objects:
             obj.delete()
@@ -60,7 +60,10 @@ class ContactCreate(ContactInline, CreateView):
         else:
             return {
                 'numbers': ContactNumberFormSet(
-                    self.request.POST or None, self.request.FILES or None, prefix='numbers'),
+                    self.request.POST or None,
+                    self.request.FILES or None,
+                    prefix='numbers'
+                ),
             }
 
 
@@ -74,7 +77,11 @@ class ContactUpdate(ContactInline, UpdateView):
     def get_named_formsets(self):
         return {
             'numbers': ContactNumberFormSet(
-                self.request.POST or None, self.request.FILES or None, instance=self.object, prefix='numbers'),
+                self.request.POST or None,
+                self.request.FILES or None,
+                instance=self.object,
+                prefix='numbers'
+            ),
         }
 
 
@@ -88,13 +95,12 @@ def delete_number(request, pk):
     try:
         number = ContactNumber.objects.get(id=pk)
     except ContactNumber.DoesNotExist:
-        messages.success(
-            request, 'Object Does not exit'
-            )
-        return redirect('phonebook:update_contact', pk=number.contact.id)
-
+        messages.error(request, 'Object Does not exit')
+        referer_url = request.META.get('HTTP_REFERER', None)
+        if referer_url:
+            return redirect(referer_url)
+        return redirect('phonebook:list_contacts')
+    
     number.delete()
-    messages.success(
-            request, 'Number deleted successfully'
-            )
+    messages.success(request, 'Number deleted successfully')
     return redirect('phonebook:update_contact', pk=number.contact.id)
